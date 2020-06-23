@@ -4,6 +4,9 @@ import bodyParser from  "body-parser";
 
 import SocialInstitut from "./model/socialInstitute.model";
 import Circular from "./model/circular.model";
+import User from "./model/user.model";
+import Employe from "./model/employee.model";
+import Account from "./model/account.model";
 import Contract from "./model/contract.model";
 import CorporateName from "./model/corporateName";
 import EmployeeCategory from "./model/employeeCategory.model";
@@ -16,31 +19,125 @@ const  app=express();
 app.use(bodyParser.json());
 
 //connection base de donnee mongodb
-const uri= "mongodb://localhost:27017/LIVRABLE";
+const uri= "mongodb+srv://limamou:limamou1@cluster0-cxm3i.mongodb.net/livrable?retryWrites=true&w=majority";
 mongoose.connect(uri,(err)=>{
     if(err) console.log(err);
     else console.log("base de donne connecter");
 });
 
 
+// platform kie
+
+///liste des Contract
+app.get("/contract",(req,resp)=>{
+    Contract.find((err,contract)=>{
+        if (err) resp.status(500).send(err)
+        else  resp.send(contract);
+    })
+});
+//listez un Contract par son id
+app.get("/contract/:id",(req,resp)=>{
+    Contract.findById(req.params.id,(err,contract)=>{
+        if (err) resp.status(500).send(err)
+        else  resp.send(contract);
+    })
+});
+//enregistrer des Contract
+app.post("/contract",(req,resp)=>{
+    let contract=new Contract(req.body);
+    contract.save(err=>{
+        if (err)resp.status(500).send(err);
+        else resp.send(contract);
+    })
+});
+//route user
+
+app.post("/user",(req,resp)=>{
+    let user=new User(req.body);
+    user.save(err=>{
+        if (err)resp.status(500).send(err);
+        else resp.send(user);
+    })
+});
+
+//route employe
+
+app.post("/employe",(req,resp)=>{
+    let employe=new Employe(req.body);
+    employe.save(err=>{
+        if (err)resp.status(500).send(err);
+        else resp.send(employe);
+    })
+});
+
+app.get("/employe",(req,resp)=>{
+    Employe.find((err,employe,)=>{
+        if (err) resp.status(500).send(err)
+        else  resp.send(employe,);
+    })
+});
+
+app.get("/employe/:id",(req,resp)=>{
+    Employe.find({ Account: req.params.id },function (err,employe) {
+        if (err) {resp.send("succes:false")}
+        else  resp.send(employe);
+    })
+
+});
+//route account
+app.post("newAccount",(req,resp)=>{
+    let account=new Account(req.body);
+    account.save(err=>{
+        if (err)resp.status(500).send(err);
+        else resp.send(account);
+    })
+});
+
+app.get("/account",(req,resp)=>{
+    Account.find((err,account,)=>{
+        if (err) resp.status(500).send(err)
+        else  resp.send(account,);
+    })
+});
+app.post("/account",(req,resp)=>{
+    Account.findOne({ identifiant: req.body.identifiant}, function(err, account) {
+        console.log('User found ');
+        // In case the user not found
+        if(err) {
+            console.log('THIS IS ERROR RESPONSE')
+            resp.json(err)
+        }
+        if (account && account.motDePasse === req.body.motDePasse){
+            console.log('User and password is correct')
+            resp.json(account);
+        } else {
+            console.log("Credentials wrong");
+            resp.json({data: "identifiant ou mot de passe incorrect"});
+        }
+    });
+});
+
+
             /*Socialinstituts*/
 
 //liste des Socialinstituts avec pagination
-app.get("/psocialinstitut",(req,resp)=>{
-    let p:number=parseInt(req.query.page || 1);
-    let size:number=parseInt(req.query.size || 5)
-    SocialInstitut.paginate({},{page:p,limit:size},function (err,result) {
-        if (err) resp.status(500).send(err)
-        else  resp.send(result);
-    })
-});
+// app.get("/psocialinstitut",(req,resp)=>{
+//     let p:number=parseInt(req.query.page || 1);
+//     let size:number=parseInt(req.query.size || 5)
+//     SocialInstitut.paginate({},{page:p,limit:size},function (err,result) {
+//         if (err) resp.status(500).send(err)
+//         else  resp.send(result);
+//     })
+// });
 //liste des Socialinstituts
+
 app.get("/socialinstitut",(req,resp)=>{
     SocialInstitut.find((err,socialInstitut)=>{
         if (err) resp.status(500).send(err)
         else  resp.send(socialInstitut);
     })
 });
+
 //listez un Socialinstituts par son id
 app.get("/socialinstitut/:id",(req,resp)=>{
     SocialInstitut.findById(req.params.id,(err,socialInstitut)=>{
@@ -56,6 +153,7 @@ app.post("/socialinstitut",(req,resp)=>{
        else resp.send(socialInstitut);
    })
 });
+
 //mises a jour d'un Socialinstituts
 app.put("/socialinstitut/:id",(req,resp)=>{
     SocialInstitut.findByIdAndUpdate(req.params.id,req.body,(err)=>{
@@ -73,15 +171,7 @@ app.delete("/socialinstitut/:id",(req,resp)=>{
 
                     /*Circular*/
 
-//liste des Circular avec pagination
-app.get("/pcircular",(req,resp)=>{
-    let p:number=parseInt(req.query.page || 1);
-    let size:number=parseInt(req.query.size || 5)
-    Circular.paginate({},{page:p,limit:size},function (err,result) {
-        if (err) resp.status(500).send(err)
-        else  resp.send(result);
-    })
-});
+
 //liste des Circular
 app.get("/circular",(req,resp)=>{
     Circular.find((err,circular)=>{
@@ -121,15 +211,7 @@ app.delete("/circular/:id",(req,resp)=>{
 
                 /*Contract*/
 
-//liste des Contract avec pagination
-app.get("/pcontract",(req,resp)=>{
-    let p:number=parseInt(req.query.page || 1);
-    let size:number=parseInt(req.query.size || 5)
-    Contract.paginate({},{page:p,limit:size},function (err,result) {
-        if (err) resp.status(500).send(err)
-        else  resp.send(result);
-    })
-});
+
 //liste des Contract
 app.get("/contract",(req,resp)=>{
     Contract.find((err,contract)=>{
@@ -169,15 +251,7 @@ app.delete("/contract/:id",(req,resp)=>{
 
                 /*CorporateName*/
 
-//liste des CorporateName avec pagination
-app.get("/pcorporateNamet",(req,resp)=>{
-    let p:number=parseInt(req.query.page || 1);
-    let size:number=parseInt(req.query.size || 5)
-    CorporateName.paginate({},{page:p,limit:size},function (err,result) {
-        if (err) resp.status(500).send(err)
-        else  resp.send(result);
-    })
-});
+
 //liste des CorporateName
 app.get("/corporateName",(req,resp)=>{
     CorporateName.find((err,corporateName)=>{
@@ -218,15 +292,7 @@ app.delete("/corporateName/:id",(req,resp)=>{
 
                     /*EmployeeCategory*/
 
-//liste des EmployeeCategory avec pagination
-app.get("/pemployeeCategory",(req,resp)=>{
-    let p:number=parseInt(req.query.page || 1);
-    let size:number=parseInt(req.query.size || 5)
-    EmployeeCategory.paginate({},{page:p,limit:size},function (err,result) {
-        if (err) resp.status(500).send(err)
-        else  resp.send(result);
-    })
-});
+
 //liste des EmployeeCategory
 app.get("/employeeCategory",(req,resp)=>{
     EmployeeCategory.find((err,employeeCategory)=>{

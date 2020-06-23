@@ -4,7 +4,7 @@ import mongoosePaginate from "mongoose-paginate";
 
 let contractSchema= new mongoose.Schema({
     Type:{type:String,required:true},
-    Definition:{type:String,required:true},
+    Definition:{type:String,required:false},
 });
 
 contractSchema.plugin(mongoosePaginate);
