@@ -1,6 +1,7 @@
 import  express from "express";
 import  mongoose from "mongoose";
 import bodyParser from  "body-parser";
+import cors from  "cors";
 
 import SocialInstitut from "./model/socialInstitute.model";
 import Circular from "./model/circular.model";
@@ -24,7 +25,8 @@ mongoose.connect(uri,(err)=>{
     if(err) console.log(err);
     else console.log("base de donne connecter");
 });
-
+// Middleware qui permet d'autoriser les requêtes Ajax provenant d'un autre domaine
+app.use(cors());
 
 // platform kie
 
@@ -42,6 +44,21 @@ app.get("/contract/:id",(req,resp)=>{
         else  resp.send(contract);
     })
 });
+//nbre de contract
+app.get("/nbreContrat",(req,resp)=>{
+    Contract.count( {}, function(err, result){
+
+        if(err){
+            resp.send(err)
+        }
+        else{
+            resp.json(result)
+        }
+    })
+});
+
+
+
 //enregistrer des Contract
 app.post("/contract",(req,resp)=>{
     let contract=new Contract(req.body);
@@ -77,12 +94,33 @@ app.get("/employe",(req,resp)=>{
     })
 });
 
+//nbre de contract
+app.get("/nbreEmploye",(req,resp)=>{
+    Employe.count( {}, function(err, result){
+
+        if(err){
+            resp.send(err)
+        }
+        else{
+            resp.json(result)
+        }
+    })
+});
 app.get("/employe/:id",(req,resp)=>{
     Employe.find({ Account: req.params.id },function (err,employe) {
         if (err) {resp.send("succes:false")}
         else  resp.send(employe);
     })
 
+});
+app.get("/employeByContrat/:id", (req, resp) => {
+    Employe.find({ Contract: req.params.id }, function (err, employe) {
+        if (err) {
+            resp.send("succes:false");
+        }
+        else
+            resp.send(employe);
+    });
 });
 //route account
 app.post("newAccount",(req,resp)=>{
@@ -107,6 +145,7 @@ app.post("/account",(req,resp)=>{
             console.log('THIS IS ERROR RESPONSE')
             resp.json(err)
         }
+        // @ts-ignore
         if (account && account.motDePasse === req.body.motDePasse){
             console.log('User and password is correct')
             resp.json(account);

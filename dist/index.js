@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const body_parser_1 = __importDefault(require("body-parser"));
+const cors_1 = __importDefault(require("cors"));
 const socialInstitute_model_1 = __importDefault(require("./model/socialInstitute.model"));
 const circular_model_1 = __importDefault(require("./model/circular.model"));
 const user_model_1 = __importDefault(require("./model/user.model"));
@@ -26,6 +27,8 @@ mongoose_1.default.connect(uri, (err) => {
     else
         console.log("base de donne connecter");
 });
+// Middleware qui permet d'autoriser les requêtes Ajax provenant d'un autre domaine
+app.use(cors_1.default());
 // platform kie
 ///liste des Contract
 app.get("/contract", (req, resp) => {
@@ -43,6 +46,17 @@ app.get("/contract/:id", (req, resp) => {
             resp.status(500).send(err);
         else
             resp.send(contract);
+    });
+});
+//nbre de contract
+app.get("/nbreContrat", (req, resp) => {
+    contract_model_1.default.count({}, function (err, result) {
+        if (err) {
+            resp.send(err);
+        }
+        else {
+            resp.json(result);
+        }
     });
 });
 //enregistrer des Contract
@@ -83,8 +97,28 @@ app.get("/employe", (req, resp) => {
             resp.send(employe);
     });
 });
+//nbre de contract
+app.get("/nbreEmploye", (req, resp) => {
+    employee_model_1.default.count({}, function (err, result) {
+        if (err) {
+            resp.send(err);
+        }
+        else {
+            resp.json(result);
+        }
+    });
+});
 app.get("/employe/:id", (req, resp) => {
     employee_model_1.default.find({ Account: req.params.id }, function (err, employe) {
+        if (err) {
+            resp.send("succes:false");
+        }
+        else
+            resp.send(employe);
+    });
+});
+app.get("/employeByContrat/:id", (req, resp) => {
+    employee_model_1.default.find({ Contract: req.params.id }, function (err, employe) {
         if (err) {
             resp.send("succes:false");
         }
@@ -118,6 +152,7 @@ app.post("/account", (req, resp) => {
             console.log('THIS IS ERROR RESPONSE');
             resp.json(err);
         }
+        // @ts-ignore
         if (account && account.motDePasse === req.body.motDePasse) {
             console.log('User and password is correct');
             resp.json(account);
